@@ -3,18 +3,17 @@
 #include <sstream>
 #include <Poco/Base64Encoder.h>
 
-std::string readFile(std::string path) {
+std::string readFile(const std::string &path) {
     std::ifstream input(path);
     if (!input.good()) {
-        throw std::exception();
+        throw std::runtime_error(path + ": File doesn't exist");
     }
 
     return std::string((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
 }
 
-std::string base64Encode(std::string input) {
+std::string base64Encode(const std::string &input) {
     std::stringstream stream;
-    stream.str("");
 
     Poco::Base64Encoder encoder(stream);
     encoder << input;
@@ -24,18 +23,18 @@ std::string base64Encode(std::string input) {
 }
 
 int main(int argc, char* argv[]) {
-    try {
-        if (argc < 2) {
-            std::cerr << "No input file specified";
-            return -1;
-        }
+    if (argc < 2) {
+        std::cerr << "No input file specified";
+        return -1;
+    }
 
-        std::string fileContent = readFile(argv[1]);
-        std::string base64Output = base64Encode(fileContent);
+    try {
+        const std::string fileContent = readFile(argv[1]);
+        const std::string base64Output = base64Encode(fileContent);
         std::cout << base64Output << std::endl;
         return 0;
-    } catch (std::exception &e) {
-        std::cerr << "Input file is not readable or does not exist";
+    } catch (std::runtime_error &e) {
+        std::cerr << e.what();
         return -2;
     }
 }
